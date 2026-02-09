@@ -555,4 +555,3 @@ def api_predict_now(symbol: str):
     row = predict_once(symbol)
     insert_prediction(row)
     return JSONResponse(row)
-
