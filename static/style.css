@@ -1,1 +1,117 @@
+:root {
+  --bg: #0b1220;
+  --panel: #0f1b33;
+  --text: #e7eefc;
+  --muted: #9bb0d2;
+  --line: rgba(255,255,255,0.10);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.wrap { max-width: 1200px; margin: 0 auto; padding: 22px; }
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+h1 { margin: 0; font-size: 22px; }
+.sub { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+.controls { display: flex; gap: 10px; align-items: end; }
+label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+select {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #0b1630;
+  color: var(--text);
+}
+
+button {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #162a52;
+  color: var(--text);
+  cursor: pointer;
+}
+button:hover { filter: brightness(1.1); }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.label { color: var(--muted); font-size: 12px; }
+.value { font-size: 18px; margin-top: 6px; }
+.value.small { font-size: 13px; color: var(--text); opacity: 0.95; }
+.muted { color: var(--muted); font-size: 12px; margin-top: 8px; }
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.panelTitle { font-size: 14px; color: var(--muted); margin-bottom: 10px; }
+.chart { height: 320px; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+thead th {
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+}
+tbody td {
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid var(--line);
+}
+
+.pill.BUY { background: rgba(0, 255, 140, 0.12); }
+.pill.SELL { background: rgba(255, 70, 70, 0.14); }
+.pill.HOLD { background: rgba(255, 210, 90, 0.12); }
 
