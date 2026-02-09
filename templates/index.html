@@ -1,1 +1,157 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>PrimeMarketAI — Inference UI</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>PrimeMarketAI</h1>
+        <div class="sub">Predicts exactly on 5-minute boundaries (UTC): :00, :05, :10, …</div>
+      </div>
+
+      <div class="controls">
+        <form method="get" action="/">
+          <label>Symbol</label>
+          <select name="symbol" onchange="this.form.submit()">
+            {% for s in symbols %}
+              <option value="{{s}}" {% if s==selected %}selected{% endif %}>{{s}}</option>
+            {% endfor %}
+          </select>
+        </form>
+
+        <button onclick="predictNow()">Predict now</button>
+      </div>
+    </header>
+
+    <section class="cards">
+      <div class="card">
+        <div class="label">Server</div>
+        <div id="serverTime" class="value">—</div>
+        <div class="muted" id="started">—</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Models loaded</div>
+        <div id="modelsLoaded" class="value">—</div>
+        <div class="muted" id="modelRefresh">—</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Last status</div>
+        <div id="lastStatus" class="value small">—</div>
+        <div class="muted">Threshold: {{threshold}}</div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panelTitle">Prediction vs Last Close</div>
+        <div id="chart1" class="chart"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panelTitle">Delta (Pred - Last Close) & Signal</div>
+        <div id="chart2" class="chart"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panelTitle">Recent predictions</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Boundary UTC</th>
+            <th>Pred Close</th>
+            <th>Last Close</th>
+            <th>Delta</th>
+            <th>Signal</th>
+            <th>Logged UTC</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </section>
+  </div>
+
+<script>
+  const SYMBOL = "{{selected}}";
+
+  async function loadStatus() {
+    const r = await fetch("/api/status");
+    const j = await r.json();
+    document.getElementById("serverTime").textContent = j.server_utc_now;
+    document.getElementById("started").textContent = "Started: " + (j.started_utc || "—");
+    document.getElementById("modelsLoaded").textContent = (j.symbols_loaded || []).join(", ") || "None";
+    document.getElementById("modelRefresh").textContent = "Refresh: " + (j.last_model_refresh_utc || "—");
+    document.getElementById("lastStatus").textContent = j.last_pred_status || "—";
+  }
+
+  function fmt(x) {
+    if (x === null || x === undefined) return "";
+    if (typeof x === "number") return x.toFixed(5);
+    return x;
+  }
+
+  async function loadPreds() {
+    if (!SYMBOL) return;
+    const r = await fetch(`/api/predictions?symbol=${encodeURIComponent(SYMBOL)}&limit=300`);
+    const j = await r.json();
+    const rows = j.rows || [];
+
+    // table
+    const tb = document.getElementById("rows");
+    tb.innerHTML = "";
+    for (let i = Math.max(0, rows.length - 80); i < rows.length; i++) {
+      const x = rows[i];
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${x.boundary_time_utc}</td>
+        <td>${fmt(x.pred_close)}</td>
+        <td>${fmt(x.last_close)}</td>
+        <td>${fmt(x.delta)}</td>
+        <td><span class="pill ${x.signal}">${x.signal}</span></td>
+        <td>${x.created_utc}</td>
+      `;
+      tb.appendChild(tr);
+    }
+
+    // charts
+    const t = rows.map(r => r.boundary_time_utc);
+    const pred = rows.map(r => r.pred_close);
+    const last = rows.map(r => r.last_close);
+    const delta = rows.map(r => r.delta);
+
+    Plotly.newPlot("chart1", [
+      { x: t, y: last, name: "Last Close", mode: "lines" },
+      { x: t, y: pred, name: "Pred Close", mode: "lines" }
+    ], { margin: {t: 20, r: 10, l: 50, b: 40} });
+
+    Plotly.newPlot("chart2", [
+      { x: t, y: delta, name: "Delta", mode: "lines" }
+    ], { margin: {t: 20, r: 10, l: 50, b: 40} });
+  }
+
+  async function predictNow() {
+    if (!SYMBOL) return;
+    const r = await fetch(`/api/predict_now?symbol=${encodeURIComponent(SYMBOL)}`);
+    await r.json();
+    await loadStatus();
+    await loadPreds();
+  }
+
+  async function tick() {
+    await loadStatus();
+    await loadPreds();
+  }
+
+  tick();
+  setInterval(tick, 5000);
+</script>
+</body>
+</html>
 
